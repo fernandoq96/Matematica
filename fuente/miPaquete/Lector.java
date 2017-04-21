@@ -28,7 +28,7 @@ public class Lector {
 			v1[i] = scan.nextDouble();
 		}
 		
-		return new VectorMath(dim, v1);	
+		return new VectorMath(v1);	
 	}
 	
 //	public void cambiarArchivo(String ruta)

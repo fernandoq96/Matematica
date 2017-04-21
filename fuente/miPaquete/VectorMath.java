@@ -2,16 +2,13 @@ package miPaquete;
 
 import java.util.Arrays;
 
-import javax.print.DocFlavor;
-import javax.swing.event.DocumentListener;
-
 public class VectorMath {
 	// LA LOGICA DE LECTURA DEBE IR EN EL CONSTRUCTOR DEL VECTOR
 	private int dim;
 	private double[] coor;
 
-	public VectorMath(int dim, double[] coor) {
-		this.dim = dim;
+	public VectorMath(double[] coor) {
+		this.dim = coor.length;
 		this.coor = coor;
 	}
 
@@ -47,7 +44,7 @@ public class VectorMath {
 
 	@Override
 	public String toString() {
-		return "VectorMath [dim=" + dim + ", coor=" + Arrays.toString(coor) + "]";
+		return "B = "+ Arrays.toString(coor);
 	}
 
 	// @Override
