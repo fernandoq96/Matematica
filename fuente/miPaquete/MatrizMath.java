@@ -86,6 +86,123 @@ public class MatrizMath implements Cloneable {
 		}
 	}
 
+	// Si son multiplico tampoco puede hacer inversa, se simplifican
+	// FILAS || COLUMNAS DE 0 ---> No hay inversa
+	//
+	// Version alpha
+	/*
+	 * public MatrizMath inversaGauss() throws MatSinInversa,
+	 * CloneNotSupportedException {
+	 * 
+	 * MatrizMath matAuxiliar = new MatrizMath(this.matriz);
+	 * 
+	 * MatrizMath matInversa = new MatrizMath(matAuxiliar.fila,
+	 * matAuxiliar.columna); matInversa.matIdentidad(); double pivote, aux; for
+	 * (int z = 0; z < matAuxiliar.fila - 1; z++) {
+	 * 
+	 * if ((pivote = matAuxiliar.matriz[z][z]) != 0) { for (int i = z + 1; i <
+	 * matAuxiliar.fila; i++) { aux = matAuxiliar.matriz[i][z];
+	 * 
+	 * if (aux != 0) { for (int j = 0; j < matAuxiliar.columna; j++) {
+	 * matAuxiliar.matriz[i][j] = (matAuxiliar.matriz[i][j] * pivote -
+	 * matAuxiliar.matriz[z][j] * aux); matInversa.matriz[i][j] =
+	 * (matInversa.matriz[i][j] * pivote - matInversa.matriz[z][j] * aux); } } }
+	 * } } System.out.println(matInversa);
+	 * 
+	 * for (int i = 0; i < matAuxiliar.fila; i++) { if (matAuxiliar.matriz[i][i]
+	 * != 1) { for (int j = 0; j < matAuxiliar.columna; j++) {
+	 * matInversa.matriz[i][j] /= matAuxiliar.matriz[i][i]; }
+	 * matAuxiliar.matriz[i][i] /= matAuxiliar.matriz[i][i]; } }
+	 * 
+	 * for (int z = matAuxiliar.fila - 1; z >= 0; z--) { pivote =
+	 * matAuxiliar.matriz[z][z]; if (pivote != 0) { for (int i = 0; i < z; i++)
+	 * { aux = matAuxiliar.matriz[i][z]; if (aux != 0) { for (int j = 0; j <
+	 * matAuxiliar.columna; j++) { matAuxiliar.matriz[i][j] =
+	 * (matAuxiliar.matriz[i][j] * pivote - matAuxiliar.matriz[z][j] * aux);
+	 * matInversa.matriz[i][j] = (matInversa.matriz[i][j] * pivote -
+	 * matInversa.matriz[z][j] * aux); } } } } }
+	 * 
+	 * return matInversa;
+	 * 
+	 * }
+	 */
+
+	// Version beta
+	public MatrizMath inversaGauss() {
+		double pivote, auxiliar;
+		MatrizMath matAuxiliar = new MatrizMath(this.matriz);
+		MatrizMath matInversa = new MatrizMath(this.fila, this.columna);
+		matInversa.matIdentidad();
+
+		for (int z = 0; z < matAuxiliar.fila - 1; z++) {
+			matAuxiliar.ordTrianInf(z, matInversa);
+			pivote = matAuxiliar.matriz[z][z];
+			for (int i = z + 1; i < matAuxiliar.fila; i++) {
+				auxiliar = matAuxiliar.matriz[i][z];
+				if (auxiliar != 0) {
+					for (int j = 0; j < matAuxiliar.columna; j++) {
+						matAuxiliar.matriz[i][j] = matAuxiliar.matriz[i][j] * pivote
+								- matAuxiliar.matriz[z][j] * auxiliar;
+						matInversa.matriz[i][j] = matInversa.matriz[i][j] * pivote - matInversa.matriz[z][j] * auxiliar;
+					}
+				}
+			}
+		}
+
+		for (int z = matAuxiliar.fila - 1; z > 0; z--) {
+			pivote = matAuxiliar.matriz[z][z];
+			for (int i = z - 1; i >= 0; i--) {
+				auxiliar = matAuxiliar.matriz[i][z];
+				if (auxiliar != 0) {
+					for (int j = 0; j < matAuxiliar.columna; j++) {
+						matAuxiliar.matriz[i][j] = matAuxiliar.matriz[i][j] * pivote
+								- matAuxiliar.matriz[z][j] * auxiliar;
+						matInversa.matriz[i][j] = matInversa.matriz[i][j] * pivote - matInversa.matriz[z][j] * auxiliar;
+					}
+				}
+			}
+		}
+		
+		for (int i = 0; i < matAuxiliar.fila; i++) {
+			if ((auxiliar = matAuxiliar.matriz[i][i] ) != 1) {
+				for (int j = 0; j < matAuxiliar.columna; j++) {
+					matInversa.matriz[i][j] /= auxiliar;
+					matAuxiliar.matriz[i][j] /= auxiliar;
+				}
+			}
+
+		}
+
+		return matInversa;
+	}
+
+	public void ordTrianInf(int inicio, MatrizMath mat2) {
+		int i = inicio, j = 0, fila;
+		while (j < this.columna) {
+			fila = i;
+			while (i < this.fila) {
+				if (this.matriz[fila][j] == 0 && this.matriz[i][j] != 0) {
+					this.mover(fila, i);
+					mat2.mover(fila, i);
+					fila++;
+				}
+				i++;
+			}
+			j++;
+			i = j;
+		}
+	}
+
+	public void mover(int origen, int destino) throws DistDimException {
+		if (origen < 0 || destino >= this.fila)
+			throw new DistDimException("SE PASO DE LAS FILAS DE LA MATRIZ");
+		double[] aux = new double[this.fila];
+		aux = this.matriz[origen].clone();
+		this.matriz[origen] = this.matriz[destino].clone();
+		this.matriz[destino] = aux;
+
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder cadena = new StringBuilder();
@@ -100,66 +217,8 @@ public class MatrizMath implements Cloneable {
 		return cadena.toString();
 	}
 
-	// si son multiplico tampoco puede hacer inversa
-
-	public MatrizMath inversaGauss() throws MatSinInversa, CloneNotSupportedException {
-
-		MatrizMath matAuxiliar = (MatrizMath) this.clone();
-
-		MatrizMath matInversa = new MatrizMath(matAuxiliar.fila, matAuxiliar.columna);
-		matInversa.matIdentidad();
-		double pivote, aux;
-		for (int z = 0; z < matAuxiliar.fila - 1; z++) {
-
-			if ((pivote = matAuxiliar.matriz[z][z]) != 0) {
-				for (int i = z + 1; i < matAuxiliar.fila; i++) {
-					aux = matAuxiliar.matriz[i][z];
-
-					if (aux != 0) {
-						for (int j = 0; j < matAuxiliar.columna; j++) {
-							matAuxiliar.matriz[i][j] = (matAuxiliar.matriz[i][j] * pivote
-									- matAuxiliar.matriz[z][j] * aux);
-							matInversa.matriz[i][j] = (matInversa.matriz[i][j] * pivote
-									- matInversa.matriz[z][j] * aux);
-						}
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < matAuxiliar.fila; i++) {
-			if (matAuxiliar.matriz[i][i] != 1) {
-				for (int j = 0; j < matAuxiliar.columna; j++) {
-					matInversa.matriz[i][j] /= matAuxiliar.matriz[i][i];
-				}
-				matAuxiliar.matriz[i][i] /= matAuxiliar.matriz[i][i];
-			}
-		}
-
-		for (int z = matAuxiliar.fila - 1; z >= 0; z--) {
-			pivote = matAuxiliar.matriz[z][z];
-			if (pivote != 0) {
-				for (int i = 0; i < z; i++) {
-					aux = matAuxiliar.matriz[i][z];
-					if (aux != 0) {
-						for (int j = 0; j < matAuxiliar.columna; j++) {
-							matAuxiliar.matriz[i][j] = (matAuxiliar.matriz[i][j] * pivote
-									- matAuxiliar.matriz[z][j] * aux);
-							matInversa.matriz[i][j] = (matInversa.matriz[i][j] * pivote
-									- matInversa.matriz[z][j] * aux);
-						}
-					}
-				}
-			}
-		}
-
-		return matInversa;
-
-	}
-
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
-
 }
