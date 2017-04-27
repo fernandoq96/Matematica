@@ -153,7 +153,7 @@ public class MatrizMath implements Cloneable {
 				}
 			}
 		}
-		
+		//Una vez triangulada la matriz pregunto si su det es 0 para no continuar
 		if (matAuxiliar.detIgual0()) {
 			throw new NoInversaException("El determinante es 0");
 		}
@@ -178,6 +178,7 @@ public class MatrizMath implements Cloneable {
 			}
 		}
 
+		// ESTO ES MEDIO RANCIO PERO NOSE COMO SEA OPTIMO Y PODER DIVIDRLO 
 		if ((auxiliar = matAuxiliar.matriz[this.fila - 1][this.fila - 1]) != 1) {
 			for (int j = 0; j < matAuxiliar.columna; j++) {
 				matInversa.matriz[this.fila - 1][j] /= auxiliar;
@@ -198,23 +199,24 @@ public class MatrizMath implements Cloneable {
 		return matInversa;
 	}
 
-	public void ordTrianInf(int inicio, MatrizMath mat2) {
-		int i = inicio, j = 0, fila;
-		while (j < this.columna - 1) {
-			fila = i;
-			while (i < this.fila) {
-				if (this.matriz[fila][j] == 0 && this.matriz[i][j] != 0) {
-					this.mover(fila, i);
-					mat2.mover(fila, i);
-					fila++;
-				}
-				i++;
-			}
-			j++;
-			i = j;
-		}
-	}
-
+//	public void ordTrianInf(int inicio, MatrizMath mat2) {
+//		int i = inicio, j = 0, fila;
+//		while (j < this.columna - 1) {
+//			fila = i;
+//			while (i < this.fila) {
+//				if (this.matriz[fila][j] == 0 && this.matriz[i][j] != 0) {
+//					this.mover(fila, i);
+//					mat2.mover(fila, i);
+//					fila++;
+//				}
+//				i++;
+//			}
+//			j++;
+//			i = j;
+//		}
+//	}
+	
+	/*Ordena desde la fila indicada en inicio */
 	public void ordDesdeI(int inicio, MatrizMath mat2) {
 		int i = inicio + 1, fila = inicio;
 		while (i < this.fila) {
@@ -252,7 +254,8 @@ public class MatrizMath implements Cloneable {
 		}
 		return cadena.toString();
 	}
-
+	
+	/* Una vez triangulada la matriz pregunta si el det es 0*/
 	private boolean detIgual0() {
 		int i = 0;
 		while (i < this.fila && this.matriz[i][i] != 0) {
