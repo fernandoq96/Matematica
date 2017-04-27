@@ -6,8 +6,11 @@ public class Main {
 
 		MatrizMath mat = new MatrizMath("matriz.in");
 		System.out.println(mat);
+//		mat.mover(0, 2);
 		System.out.println(mat.inversaGauss());
 		System.out.println(mat);
+//		System.out.println(mat.inversaGauss());
+//		System.out.println(mat);
 //		System.out.println(mat);
 //		System.out.println(mat.inversaGauss());
 		

@@ -2,6 +2,8 @@ package miPaquete;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -47,7 +49,7 @@ public class MatrizMath implements Cloneable {
 	public MatrizMath(double[][] mat) {
 		this.fila = mat.length;
 		this.columna = mat[0].length;
-		this.matriz = mat.clone();
+		this.matriz = mat;
 	}
 
 	public MatrizMath sumar(MatrizMath mat2) throws DistDimException {
@@ -129,13 +131,16 @@ public class MatrizMath implements Cloneable {
 
 	// Version beta
 	public MatrizMath inversaGauss() {
+		if(this.fila != this.columna)
+			throw new MatSinInversa("Inversa solo de matrices cuadradas");
+		
 		double pivote, auxiliar;
-		MatrizMath matAuxiliar = new MatrizMath(this.matriz);
+		MatrizMath matAuxiliar = new MatrizMath(this.clonar());
 		MatrizMath matInversa = new MatrizMath(this.fila, this.columna);
 		matInversa.matIdentidad();
 
 		for (int z = 0; z < matAuxiliar.fila - 1; z++) {
-			matAuxiliar.ordTrianInf(z, matInversa);
+			matAuxiliar.ordDesdeI(z, matInversa);
 			pivote = matAuxiliar.matriz[z][z];
 			for (int i = z + 1; i < matAuxiliar.fila; i++) {
 				auxiliar = matAuxiliar.matriz[i][z];
@@ -148,6 +153,10 @@ public class MatrizMath implements Cloneable {
 				}
 			}
 		}
+		
+		if (matAuxiliar.detIgual0()) {
+			throw new NoInversaException("El determinante es 0");
+		}
 
 		for (int z = matAuxiliar.fila - 1; z > 0; z--) {
 			pivote = matAuxiliar.matriz[z][z];
@@ -159,26 +168,39 @@ public class MatrizMath implements Cloneable {
 								- matAuxiliar.matriz[z][j] * auxiliar;
 						matInversa.matriz[i][j] = matInversa.matriz[i][j] * pivote - matInversa.matriz[z][j] * auxiliar;
 					}
+					if ((auxiliar = matAuxiliar.matriz[i][i]) != 1) {
+						for (int j = 0; j < matAuxiliar.columna; j++) {
+							matInversa.matriz[i][j] /= auxiliar;
+							matAuxiliar.matriz[i][j] /= auxiliar;
+						}
+					}
 				}
 			}
 		}
-		
-		for (int i = 0; i < matAuxiliar.fila; i++) {
-			if ((auxiliar = matAuxiliar.matriz[i][i] ) != 1) {
-				for (int j = 0; j < matAuxiliar.columna; j++) {
-					matInversa.matriz[i][j] /= auxiliar;
-					matAuxiliar.matriz[i][j] /= auxiliar;
-				}
-			}
 
+		if ((auxiliar = matAuxiliar.matriz[this.fila - 1][this.fila - 1]) != 1) {
+			for (int j = 0; j < matAuxiliar.columna; j++) {
+				matInversa.matriz[this.fila - 1][j] /= auxiliar;
+				matAuxiliar.matriz[this.fila - 1][j] /= auxiliar;
+			}
 		}
+
+		// for (int i = 0; i < matAuxiliar.fila; i++) {
+		// if ((auxiliar = matAuxiliar.matriz[i][i]) != 1) {
+		// for (int j = 0; j < matAuxiliar.columna; j++) {
+		// matInversa.matriz[i][j] /= auxiliar;
+		// matAuxiliar.matriz[i][j] /= auxiliar;
+		// }
+		// }
+		//
+		// }
 
 		return matInversa;
 	}
 
 	public void ordTrianInf(int inicio, MatrizMath mat2) {
 		int i = inicio, j = 0, fila;
-		while (j < this.columna) {
+		while (j < this.columna - 1) {
 			fila = i;
 			while (i < this.fila) {
 				if (this.matriz[fila][j] == 0 && this.matriz[i][j] != 0) {
@@ -193,23 +215,37 @@ public class MatrizMath implements Cloneable {
 		}
 	}
 
+	public void ordDesdeI(int inicio, MatrizMath mat2) {
+		int i = inicio + 1, fila = inicio;
+		while (i < this.fila) {
+			if (this.matriz[fila][inicio] == 0 && this.matriz[i][inicio] != 0) {
+				this.mover(fila, i);
+				mat2.mover(fila, i);
+				fila++;
+			}
+			i++;
+		}
+	}
+
 	public void mover(int origen, int destino) throws DistDimException {
 		if (origen < 0 || destino >= this.fila)
 			throw new DistDimException("SE PASO DE LAS FILAS DE LA MATRIZ");
 		double[] aux = new double[this.fila];
-		aux = this.matriz[origen].clone();
-		this.matriz[origen] = this.matriz[destino].clone();
+		aux = this.matriz[origen];
+		this.matriz[origen] = this.matriz[destino];
 		this.matriz[destino] = aux;
 
 	}
 
 	@Override
 	public String toString() {
+		DecimalFormat df = new DecimalFormat("##.##");
+		df.setRoundingMode(RoundingMode.DOWN);
 		StringBuilder cadena = new StringBuilder();
 		for (int i = 0; i < this.fila; i++) {
 			cadena.append("|");
 			for (int j = 0; j < this.columna; j++) {
-				cadena.append(this.matriz[i][j] + " ");
+				cadena.append(df.format(this.matriz[i][j]) + " ");
 			}
 			cadena.deleteCharAt(cadena.length() - 1);
 			cadena.append("|\n");
@@ -217,8 +253,25 @@ public class MatrizMath implements Cloneable {
 		return cadena.toString();
 	}
 
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+	private boolean detIgual0() {
+		int i = 0;
+		while (i < this.fila && this.matriz[i][i] != 0) {
+			i++;
+		}
+		
+		if(i == this.fila- 1)
+			return true;
+		
+		return false;
+	}
+
+	public double[][] clonar() {
+		double[][] mat = new double[this.fila][this.columna];
+		for (int i = 0; i < matriz.length; i++) {
+			for (int j = 0; j < matriz.length; j++) {
+				mat[i][j] = this.matriz[i][j];
+			}
+		}
+		return mat;
 	}
 }
